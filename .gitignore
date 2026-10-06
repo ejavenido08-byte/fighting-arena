@@ -1,0 +1,15 @@
+# Node modules (if any)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+*.log
+
+# PowerShell scripts (dev tools only)
+*.ps1
+combine_sprites.ps1
+remove_minions.ps1

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sprite Debug — Fighting Arena</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0a0f;
+      color: #e2e8f0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 13px;
+    }
+
+    /* ── Header controls ── */
+    #controls {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #12121a;
+      border-bottom: 1px solid #2d2d4e;
+      padding: 10px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    #controls label { color: #94a3b8; }
+    #controls select, #controls input[type=range] {
+      background: #1e1e2e;
+      color: #e2e8f0;
+      border: 1px solid #3d3d5c;
+      border-radius: 4px;
+      padding: 4px 8px;
+    }
+    #controls button {
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 12px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #controls button:hover { background: #2563eb; }
+    #controls button.danger { background: #dc2626; }
+    #controls button.danger:hover { background: #b91c1c; }
+    .ctrl-group { display: flex; align-items: center; gap: 6px; }
+    #fpsLabel, #frameLabel { min-width: 60px; color: #f59e0b; font-weight: bold; }
+
+    /* ── Status bar ── */
+    #status {
+      background: #0f0f1a;
+      border-bottom: 1px solid #1e1e2e;
+      padding: 6px 16px;
+      color: #64748b;
+      font-size: 11px;
+      min-height: 24px;
+    }
+    #status span { color: #a78bfa; margin-right: 12px; }
+
+    /* ── Main grid ── */
+    #grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      padding: 12px;
+    }
+
+    /* ── One character card ── */
+    .char-card {
+      background: #1a1a2e;
+      border: 1px solid #2d2d4e;
+      border-radius: 8px;
+      overflow: hidden;
+      width: 380px;
+      flex-shrink: 0;
+    }
+    .char-card-header {
+      background: #12121a;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #2d2d4e;
+    }
+    .char-name { font-weight: bold; font-size: 14px; color: #f1f5f9; }
+    .char-meta { font-size: 11px; color: #64748b; }
+    .char-status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #dc2626;
+      transition: background 0.3s;
+    }
+    .char-status-dot.loaded { background: #16a34a; }
+
+    /* ── Canvas row ── */
+    .canvas-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding: 10px 12px;
+      border-bottom: 1px solid #1e1e2e;
+    }
+    .canvas-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+    .canvas-wrap label {
+      display: block;
+      text-align: center;
+      font-size: 10px;
+      color: #64748b;
+      margin-bottom: 3px;
+    }
+    .canvas-wrap canvas {
+      display: block;
+      background: #252535;
+      border: 1px solid #3d3d5c;
+      border-radius: 3px;
+      image-rendering: pixelated;
+    }
+    /* Checker bg to see transparency */
+    canvas.checker {
+      background-image:
+        linear-gradient(45deg, #333 25%, transparent 25%),
+        linear-gradient(-45deg, #333 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #333 75%),
+        linear-gradient(-45deg, transparent 75%, #333 75%);
+      background-size: 10px 10px;
+      background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
+      background-color: #1a1a1a;
+    }
+
+    /* ── State strip ── */
+    .state-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 6px 12px 10px;
+    }
+    .state-pill {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      background: #252535;
+      color: #94a3b8;
+      border: 1px solid #3d3d5c;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+    }
+    .state-pill:hover { background: #3b82f615; border-color: #3b82f6; }
+    .state-pill.active { background: #3b82f630; border-color: #3b82f6; color: #93c5fd; }
+    .state-pill.has-sheet { border-color: #16a34a; }
+    .state-pill.active.has-sheet { background: #16a34a30; color: #86efac; }
+
+    /* ── Sheet preview ── */
+    #sheetModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 200;
+      overflow: auto;
+      padding: 20px;
+    }
+    #sheetModal.open { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    #sheetModal h3 { color: #f1f5f9; font-size: 16px; }
+    #sheetModal img { max-width: 100%; border: 1px solid #3d3d5c; border-radius: 4px; }
+    #sheetModal button { background: #64748b; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; }
+
+    /* ── Playback toggle ── */
+    #playToggle { background: #16a34a; }
+    #playToggle.playing { background: #dc2626; }
+
+    /* ── Info panel ── */
+    #infoPanel {
+      background: #12121a;
+      border-top: 1px solid #2d2d4e;
+      padding: 8px 16px;
+      font-size: 11px;
+      color: #64748b;
+      position: sticky;
+      bottom: 0;
+    }
+    #infoPanel b { color: #a78bfa; }
+  </style>
+</head>
+<body>
+
+<!-- ── Controls ── -->
+<div id="controls">
+  <div class="ctrl-group">
+    <label>Character:</label>
+    <select id="selChar"></select>
+  </div>
+  <div class="ctrl-group">
+    <label>State:</label>
+    <select id="selState"></select>
+  </div>
+  <div class="ctrl-group">
+    <label>Scale:</label>
+    <input type="range" id="scaleSlider" min="1" max="4" step="0.25" value="2" style="width:80px" />
+    <span id="scaleLabel">2×</span>
+  </div>
+  <div class="ctrl-group">
+    <label>FPS:</label>
+    <input type="range" id="fpsSlider" min="1" max="24" step="1" value="8" style="width:80px" />
+    <span id="fpsLabel">8</span>
+  </div>
+  <div class="ctrl-group">
+    <label>Frame:</label>
+    <input type="range" id="frameSlider" min="0" max="7" step="1" value="0" style="width:80px" />
+    <span id="frameLabel">0</span>
+  </div>
+  <button id="playToggle">▶ PLAY</button>
+  <button id="btnShowAll">ALL CHARS</button>
+  <button id="btnShowSheet" class="danger">VIEW RAW SHEET</button>
+</div>
+
+<!-- ── Status bar ── -->
+<div id="status">Loading assets…</div>
+
+<!-- ── Main content ── -->
+<div id="grid"></div>
+
+<!-- ── Info bar ── -->
+<div id="infoPanel">
+  <b>TIP:</b> Green dot = sheet loaded · Green border on state pill = sheet confirmed ·
+  Checkered background shows alpha (transparent pixels) · Click a state pill to preview that state ·
+  Use Frame slider for manual stepping · Click VIEW RAW SHEET to see full sprite sheet
+</div>
+
+<!-- ── Sheet modal ── -->
+<div id="sheetModal">
+  <h3 id="sheetModalTitle"></h3>
+  <button onclick="document.getElementById('sheetModal').classList.remove('open')">✕ CLOSE</button>
+  <img id="sheetModalImg" src="" alt="sheet" />
+</div>
+
+<!-- ────────────────────────────────────────── -->
+<!-- Load game data files (characters + asset manager) -->
+<!-- ────────────────────────────────────────── -->
+<script src="data/characters.js"></script>
+<script src="systems/AssetManager.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// SPRITE DEBUG — main logic
+// ═══════════════════════════════════════════════════════════════
+
+const STATES = [
+  'idle','walk','jump','fall','attack','skill','ultimate',
+  'hit','knockdown','block','victory','defeat'
+];
+
+const CHAR_IDS = [
+  'ember','frost','blaze','volt','luna',
+  'terra','kai','kira','shadow','inferno'
+];
+
+// ── State ──
+let currentChar    = CHAR_IDS[0];
+let currentState   = 'idle';
+let currentFrame   = 0;
+let fps            = 8;
+let scale          = 2;
+let isPlaying      = false;
+let lastTick       = 0;
+let animInterval   = null;
+let showAllMode    = false;
+
+// ── Canvas references: charId → { state → canvas } ──
+const canvases = {};
+
+// ── DOM refs ──
+const selChar       = document.getElementById('selChar');
+const selState      = document.getElementById('selState');
+const scaleSlider   = document.getElementById('scaleSlider');
+const scaleLabel    = document.getElementById('scaleLabel');
+const fpsSlider     = document.getElementById('fpsSlider');
+const fpsLabel      = document.getElementById('fpsLabel');
+const frameSlider   = document.getElementById('frameSlider');
+const frameLabel    = document.getElementById('frameLabel');
+const playToggle    = document.getElementById('playToggle');
+const btnShowAll    = document.getElementById('btnShowAll');
+const btnShowSheet  = document.getElementById('btnShowSheet');
+const gridEl        = document.getElementById('grid');
+const statusEl      = document.getElementById('status');
+
+// ── Populate selects ──
+CHAR_IDS.forEach(id => {
+  const o = document.createElement('option');
+  o.value = id; o.textContent = id.charAt(0).toUpperCase() + id.slice(1);
+  selChar.appendChild(o);
+});
+STATES.forEach(s => {
+  const o = document.createElement('option');
+  o.value = s; o.textContent = s;
+  selState.appendChild(o);
+});
+
+// ── Init AssetManager ──
+// Need a minimal getAllCharacters shim since characters.js defines CHARACTERS
+function getAllCharacters() {
+  if (typeof CHARACTERS !== 'undefined') return Object.values(CHARACTERS);
+  return CHAR_IDS.map(id => ({ id, name: id, color: '#ff6b2b', element: 'Fire', emoji: '🔥', stats: { hp:1000, maxEnergy:100, attack:80, defense:60, speed:70 } }));
+}
+
+// Also need a dummy EffectManager since AssetManager doesn't use it but Characters might
+window.EffectManager = window.EffectManager || { updateHPBarState: () => {} };
+
+AssetManager.init(() => {
+  setStatus('AssetManager ready — sheets loading in background…');
+  buildUI();
+  // Poll for sheet loads and refresh
+  let pollCount = 0;
+  const poll = setInterval(() => {
+    pollCount++;
+    const loaded = CHAR_IDS.filter(id => AssetManager.hasRealSheet(id)).length;
+    setStatus(`Sheets loaded: ${loaded}/${CHAR_IDS.length} — auto-refreshing…`);
+    updateStatusDots();
+    if (showAllMode) redrawAll();
+    else             drawSingle(currentChar, currentState, currentFrame);
+    if (loaded === CHAR_IDS.length || pollCount > 30) {
+      clearInterval(poll);
+      setStatus(`All ${loaded} sheets loaded ✓ — Frame cache populated on first draw`);
+    }
+  }, 800);
+});
+
+// ── Build the UI grid ──
+function buildUI() {
+  gridEl.innerHTML = '';
+  canvases[currentChar] = canvases[currentChar] || {};
+
+  if (showAllMode) {
+    buildAllCharsGrid();
+  } else {
+    buildSingleCharGrid(currentChar);
+  }
+}
+
+function buildSingleCharGrid(charId) {
+  gridEl.innerHTML = '';
+  const card = buildCharCard(charId);
+  gridEl.appendChild(card);
+}
+
+function buildAllCharsGrid() {
+  gridEl.innerHTML = '';
+  CHAR_IDS.forEach(id => {
+    const card = buildCharCard(id);
+    gridEl.appendChild(card);
+  });
+}
+
+function buildCharCard(charId) {
+  const ch = getCharData(charId);
+
+  const card = document.createElement('div');
+  card.className = 'char-card';
+  card.id = `card-${charId}`;
+
+  // ── Header ──
+  const hdr = document.createElement('div');
+  hdr.className = 'char-card-header';
+
+  const dot = document.createElement('div');
+  dot.className = 'char-status-dot';
+  dot.id = `dot-${charId}`;
+  if (AssetManager.hasRealSheet(charId)) dot.classList.add('loaded');
+
+  const dims = AssetManager.getSheetDims(charId);
+  const dimsStr = dims ? `${dims.cols}×${dims.rows} · ${dims.colW}×${dims.rowH}px/frame` : 'no sheet';
+
+  hdr.innerHTML = `
+    <div>
+      <div class="char-name">${charId.toUpperCase()} ${ch.emoji || ''}</div>
+      <div class="char-meta">${ch.element || ''} · ${dimsStr}</div>
+    </div>`;
+  hdr.appendChild(dot);
+  card.appendChild(hdr);
+
+  // ── Canvas row: active state large + raw frame small ──
+  const row = document.createElement('div');
+  row.className = 'canvas-row';
+
+  // Large display canvas (scaled)
+  const wrapMain = document.createElement('div');
+  wrapMain.className = 'canvas-wrap';
+  const lblMain = document.createElement('label');
+  lblMain.textContent = `${currentState} · frame ${currentFrame}`;
+  lblMain.id = `lbl-${charId}-main`;
+  const cvMain = document.createElement('canvas');
+  cvMain.className = 'checker';
+  const fw = dims ? dims.colW : 108;
+  const fh = dims ? dims.rowH : 164;
+  cvMain.width  = Math.round(fw * scale);
+  cvMain.height = Math.round(fh * scale);
+  cvMain.id = `cv-${charId}-main`;
+  wrapMain.appendChild(lblMain);
+  wrapMain.appendChild(cvMain);
+  row.appendChild(wrapMain);
+
+  // Small 1× frame canvas (unscaled, raw)
+  const wrapRaw = document.createElement('div');
+  wrapRaw.className = 'canvas-wrap';
+  const lblRaw = document.createElement('label');
+  lblRaw.textContent = 'raw (1×)';
+  const cvRaw = document.createElement('canvas');
+  cvRaw.className = 'checker';
+  cvRaw.width  = fw;
+  cvRaw.height = fh;
+  cvRaw.id = `cv-${charId}-raw`;
+  wrapRaw.appendChild(lblRaw);
+  wrapRaw.appendChild(cvRaw);
+  row.appendChild(wrapRaw);
+
+  // Info column
+  const info = document.createElement('div');
+  info.style.cssText = 'font-size:11px; color:#64748b; line-height:1.8; flex:1';
+  info.id = `info-${charId}`;
+  info.innerHTML = buildInfoHTML(charId, currentState, currentFrame);
+  row.appendChild(info);
+
+  card.appendChild(row);
+
+  // ── State pills ──
+  const strip = document.createElement('div');
+  strip.className = 'state-strip';
+  STATES.forEach(st => {
+    const pill = document.createElement('span');
+    pill.className = 'state-pill' + (st === currentState ? ' active' : '');
+    pill.textContent = st;
+    pill.id = `pill-${charId}-${st}`;
+    if (AssetManager.hasRealSheet(charId)) pill.classList.add('has-sheet');
+    pill.onclick = () => {
+      currentState = st;
+      selState.value = st;
+      currentFrame = 0;
+      frameSlider.value = 0;
+      frameLabel.textContent = '0';
+      updateStatePills(charId);
+      drawSingle(charId, st, 0);
+    };
+    strip.appendChild(pill);
+  });
+  card.appendChild(strip);
+
+  // Store canvas refs
+  if (!canvases[charId]) canvases[charId] = {};
+  canvases[charId].main = cvMain;
+  canvases[charId].raw  = cvRaw;
+  canvases[charId].lbl  = lblMain;
+  canvases[charId].info = info;
+  canvases[charId].strip = strip;
+
+  return card;
+}
+
+function buildInfoHTML(charId, state, frame) {
+  const dims   = AssetManager.getSheetDims(charId);
+  const maxF   = AssetManager.getFrameCount(charId, state);
+  const hasSheet = AssetManager.hasRealSheet(charId);
+  const rowIdx = AssetManager.SPRITE_ROWS[state] ?? '?';
+  const srcX   = dims ? frame * dims.colW : '?';
+  const srcY   = dims ? rowIdx * dims.rowH : '?';
+  return `
+    <div>Sheet: <b style="color:${hasSheet?'#16a34a':'#dc2626'}">${hasSheet?'LOADED':'PLACEHOLDER'}</b></div>
+    <div>State row: <b>${rowIdx}</b></div>
+    <div>Frame: <b>${frame}</b> / ${maxF-1}</div>
+    <div>Src rect: <b>(${srcX},${srcY})</b></div>
+    <div>Frame size: <b>${dims?`${dims.colW}×${dims.rowH}`:'80×120'}</b></div>
+  `;
+}
+
+// ── Draw one character in one state at one frame ──
+function drawSingle(charId, state, frame) {
+  const cvs = canvases[charId];
+  if (!cvs || !cvs.main) return;
+
+  const dims = AssetManager.getSheetDims(charId) || { colW: 108, rowH: 164 };
+  const maxF = AssetManager.getFrameCount(charId, state);
+  const safeFrame = Math.floor(Math.abs(frame)) % maxF;
+
+  // Update label
+  if (cvs.lbl) cvs.lbl.textContent = `${state} · frame ${safeFrame}/${maxF-1}`;
+  if (cvs.info) cvs.info.innerHTML  = buildInfoHTML(charId, state, safeFrame);
+
+  // Scale canvas to match slider
+  const fw = dims.colW;
+  const fh = dims.rowH;
+  cvs.main.width  = Math.round(fw * scale);
+  cvs.main.height = Math.round(fh * scale);
+  cvs.raw.width   = fw;
+  cvs.raw.height  = fh;
+
+  // Draw scaled
+  const ctx = cvs.main.getContext('2d');
+  ctx.clearRect(0, 0, cvs.main.width, cvs.main.height);
+  AssetManager.drawSprite(ctx, charId, state, safeFrame, 0, 0,
+    cvs.main.width, cvs.main.height);
+
+  // Draw raw 1×
+  const rctx = cvs.raw.getContext('2d');
+  rctx.clearRect(0, 0, fw, fh);
+  AssetManager.drawSprite(rctx, charId, state, safeFrame, 0, 0, fw, fh);
+
+  // Update state pills
+  updateStatePills(charId);
+}
+
+function redrawAll() {
+  CHAR_IDS.forEach(id => {
+    if (canvases[id] && canvases[id].main) {
+      drawSingle(id, currentState, currentFrame);
+    }
+  });
+}
+
+function updateStatePills(charId) {
+  if (!canvases[charId] || !canvases[charId].strip) return;
+  const pills = canvases[charId].strip.querySelectorAll('.state-pill');
+  pills.forEach(p => {
+    p.classList.toggle('active', p.textContent === currentState);
+    p.classList.toggle('has-sheet', AssetManager.hasRealSheet(charId));
+  });
+}
+
+function updateStatusDots() {
+  CHAR_IDS.forEach(id => {
+    const dot = document.getElementById(`dot-${id}`);
+    if (dot) dot.classList.toggle('loaded', AssetManager.hasRealSheet(id));
+  });
+}
+
+function setStatus(msg) {
+  statusEl.textContent = msg;
+}
+
+function getCharData(charId) {
+  try {
+    const chars = getAllCharacters();
+    return chars.find(c => c.id === charId) || { emoji: '🔥', element: 'Fire' };
+  } catch(e) { return { emoji: '🔥', element: 'Fire' }; }
+}
+
+// ── Playback ──
+function startPlayback() {
+  if (animInterval) clearInterval(animInterval);
+  const delay = Math.round(1000 / fps);
+  animInterval = setInterval(() => {
+    const maxF = AssetManager.getFrameCount(currentChar, currentState);
+    currentFrame = (currentFrame + 1) % maxF;
+    frameSlider.max   = maxF - 1;
+    frameSlider.value = currentFrame;
+    frameLabel.textContent = currentFrame;
+    if (showAllMode) {
+      CHAR_IDS.forEach(id => drawSingle(id, currentState, currentFrame));
+    } else {
+      drawSingle(currentChar, currentState, currentFrame);
+    }
+  }, delay);
+}
+
+function stopPlayback() {
+  if (animInterval) { clearInterval(animInterval); animInterval = null; }
+}
+
+// ── Event handlers ──
+selChar.addEventListener('change', e => {
+  currentChar = e.target.value;
+  currentFrame = 0;
+  frameSlider.value = 0;
+  frameLabel.textContent = '0';
+  buildUI();
+  drawSingle(currentChar, currentState, currentFrame);
+});
+
+selState.addEventListener('change', e => {
+  currentState = e.target.value;
+  currentFrame = 0;
+  frameSlider.value = 0;
+  frameLabel.textContent = '0';
+  if (showAllMode) redrawAll();
+  else drawSingle(currentChar, currentState, currentFrame);
+});
+
+scaleSlider.addEventListener('input', e => {
+  scale = parseFloat(e.target.value);
+  scaleLabel.textContent = scale + '×';
+  if (showAllMode) redrawAll();
+  else drawSingle(currentChar, currentState, currentFrame);
+});
+
+fpsSlider.addEventListener('input', e => {
+  fps = parseInt(e.target.value);
+  fpsLabel.textContent = fps;
+  if (isPlaying) startPlayback();
+});
+
+frameSlider.addEventListener('input', e => {
+  if (isPlaying) { stopPlayback(); isPlaying = false; playToggle.textContent = '▶ PLAY'; playToggle.classList.remove('playing'); }
+  currentFrame = parseInt(e.target.value);
+  frameLabel.textContent = currentFrame;
+  if (showAllMode) redrawAll();
+  else drawSingle(currentChar, currentState, currentFrame);
+});
+
+playToggle.addEventListener('click', () => {
+  isPlaying = !isPlaying;
+  if (isPlaying) {
+    playToggle.textContent = '⏹ STOP';
+    playToggle.classList.add('playing');
+    startPlayback();
+  } else {
+    playToggle.textContent = '▶ PLAY';
+    playToggle.classList.remove('playing');
+    stopPlayback();
+  }
+});
+
+btnShowAll.addEventListener('click', () => {
+  showAllMode = !showAllMode;
+  btnShowAll.textContent = showAllMode ? 'SINGLE CHAR' : 'ALL CHARS';
+  buildUI();
+  if (showAllMode) redrawAll();
+  else drawSingle(currentChar, currentState, currentFrame);
+});
+
+btnShowSheet.addEventListener('click', () => {
+  const modal = document.getElementById('sheetModal');
+  const img   = document.getElementById('sheetModalImg');
+  const title = document.getElementById('sheetModalTitle');
+  const id    = currentChar;
+  const dims  = AssetManager.getSheetDims(id);
+  title.textContent = `${id.toUpperCase()} raw sheet`;
+  img.src = `assets/characters/${id}_sheet.png`;
+  modal.classList.add('open');
+});
+
+// Update frame slider max when state changes
+function syncFrameSlider() {
+  const maxF = AssetManager.getFrameCount(currentChar, currentState);
+  frameSlider.max = maxF - 1;
+  if (currentFrame >= maxF) {
+    currentFrame = 0;
+    frameSlider.value = 0;
+    frameLabel.textContent = '0';
+  }
+}
+
+selState.addEventListener('change', syncFrameSlider);
+</script>
+</body>
+</html>

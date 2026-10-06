@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <title>The Story of the First Flame</title>
+  <!-- Inline favicon to prevent 404 -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       ROOT APP CONTAINER
+       All screens are injected here by ScreenManager
+  ═══════════════════════════════════════════ -->
+  <div id="app">
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: LOGIN                           -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-login" class="screen active">
+      <div class="login-bg">
+        <video class="menu-bg-video" autoplay loop muted playsinline
+          poster="assets/backgrounds/menu_bg.png">
+          <source src="assets/backgrounds/menu_bg.mp4" type="video/mp4">
+        </video>
+        <div class="menu-overlay"></div>
+      </div>
+
+      <div class="login-container">
+        <!-- Logo / Title -->
+        <div class="login-title-wrap">
+          <span class="login-title-the">THE STORY OF</span>
+          <span class="login-title-main">THE FIRST FLAME</span>
+        </div>
+
+        <!-- Card -->
+        <div class="login-card">
+          <!-- Tabs -->
+          <div class="login-tabs">
+            <button class="login-tab active" id="tabLogin">LOGIN</button>
+            <button class="login-tab" id="tabRegister">REGISTER</button>
+          </div>
+
+          <!-- Error / Success message -->
+          <div class="login-msg hidden" id="loginMsg"></div>
+
+          <!-- LOGIN FORM -->
+          <form class="login-form" id="formLogin" autocomplete="off">
+            <div class="login-field">
+              <label>EMAIL</label>
+              <input type="email" id="loginEmail" placeholder="Enter email" />
+            </div>
+            <div class="login-field">
+              <label>PASSWORD</label>
+              <input type="password" id="loginPassword" placeholder="Enter password" maxlength="30" />
+            </div>
+            <button type="submit" class="login-btn-submit">ENTER THE ARENA</button>
+            <button type="button" class="login-btn-guest" id="btnGuest">PLAY AS GUEST</button>
+          </form>
+
+          <!-- REGISTER FORM -->
+          <form class="login-form hidden" id="formRegister" autocomplete="off">
+            <div class="login-field">
+              <label>USERNAME</label>
+              <input type="text" id="regUsername" placeholder="Choose a username" maxlength="20" />
+            </div>
+            <div class="login-field">
+              <label>EMAIL</label>
+              <input type="email" id="regEmail" placeholder="Enter email" />
+            </div>
+            <div class="login-field">
+              <label>PASSWORD</label>
+              <input type="password" id="regPassword" placeholder="Choose a password" maxlength="30" />
+            </div>
+            <div class="login-field">
+              <label>CONFIRM PASSWORD</label>
+              <input type="password" id="regConfirm" placeholder="Confirm password" maxlength="30" />
+            </div>
+            <button type="submit" class="login-btn-submit">CREATE ACCOUNT</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: MAIN MENU                       -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-menu" class="screen">
+      <div class="menu-bg">
+        <!-- VIDEO BACKGROUND — place menu_bg.mp4 in assets/backgrounds/ -->
+        <video
+          id="menuBgVideo"
+          class="menu-bg-video"
+          autoplay
+          loop
+          muted
+          playsinline
+          poster="assets/backgrounds/menu_bg.png">
+          <source src="assets/backgrounds/menu_bg.mp4" type="video/mp4">
+          <source src="assets/backgrounds/menu_bg.webm" type="video/webm">
+          <!-- Falls back to static image if no video file found -->
+        </video>
+        <div class="menu-particles" id="menuParticles"></div>
+        <div class="menu-overlay"></div>
+      </div>
+      <div class="menu-content">
+        <div class="menu-title-wrap">
+          <h1 class="game-title">
+            <span class="title-the">THE STORY OF</span>
+            <span class="title-main">THE FIRST FLAME</span>
+          </h1>
+          <div class="title-glow-bar"></div>
+        </div>
+        <nav class="menu-nav" id="menuNav">
+          <button class="menu-btn primary" data-action="storyMode">STORY MODE</button>
+          <button class="menu-btn primary" data-action="quickBattle">VS MODE</button>
+          <button class="menu-btn primary" data-action="characterSelect">CHARACTERS</button>
+          <button class="menu-btn secondary" data-action="howToPlay">HOW TO PLAY</button>
+          <button class="menu-btn secondary" data-action="settings">SETTINGS</button>
+          <button class="menu-btn secondary" data-action="quit">QUIT</button>
+        </nav>
+        <div class="menu-hint">↑ ↓ Arrow Keys to Navigate &nbsp;·&nbsp; Enter to Select</div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: STORY MAP (Chapter List)        -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-storymap" class="screen">
+      <div class="screen-bg bg-storymap"></div>
+      <div class="story-map-container" id="storyMapContainer">
+        <div class="story-map-header">
+          <h2 class="screen-title">STORY MODE</h2>
+          <p class="screen-subtitle">Select a Chapter</p>
+        </div>
+        <div class="chapter-list" id="chapterList"></div>
+        <div class="screen-footer">
+          <button class="btn-secondary" data-action="backToMenu">← BACK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: CHAPTER MAP (Level Nodes)       -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-chaptermap" class="screen">
+      <div class="screen-bg bg-dark"></div>
+      <div class="chapter-map-container" id="chapterMapContainer">
+        <div class="chapter-map-header">
+          <div class="chapter-map-title-row">
+            <h2 class="chapter-map-title" id="chapterMapTitle"></h2>
+            <div class="chapter-star-counter" id="chapterStarCounter"></div>
+          </div>
+        </div>
+        <div class="chapter-map-path" id="chapterMapPath"></div>
+        <div class="chapter-reward-panel" id="chapterRewardPanel"></div>
+        <div class="screen-footer">
+          <button class="btn-secondary" data-action="backToStoryMap">← BACK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: QUICK BATTLE SELECT             -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-quickbattle" class="screen">
+      <div class="qb-bg" id="qbBg"></div>
+      <div class="qb-overlay"></div>
+
+      <!-- Title -->
+      <div class="qb-title">VS MODE</div>
+
+      <!-- Main arena: P1 portrait | char grids | P2 portrait -->
+      <div class="qb-arena">
+
+        <!-- P1 big portrait -->
+        <div class="qb-fighter qb-fighter-left">
+          <div class="qb-portrait-wrap" id="qbP1Portrait">
+            <div class="qb-portrait-placeholder" id="qbP1Emoji"></div>
+          </div>
+          <div class="qb-fighter-name" id="qbP1Name">SELECT</div>
+          <div class="qb-fighter-role" id="qbP1Role">─</div>
+        </div>
+
+        <!-- Center: char grids + VS + map -->
+        <div class="qb-center">
+          <div class="qb-vs-label">VS</div>
+
+          <!-- Character grid row -->
+          <div class="qb-grids">
+            <!-- P1 grid (5 chars, left side) -->
+            <div class="qb-grid qb-grid-left" id="qbGridLeft"></div>
+            <!-- P2 grid (5 chars, right side) -->
+            <div class="qb-grid qb-grid-right" id="qbGridRight"></div>
+          </div>
+
+          <!-- Map selector -->
+          <div class="qb-map-section">
+            <div class="qb-map-label">SELECT STAGE</div>
+            <div class="qb-map-strip" id="qbMapStrip"></div>
+            <div class="qb-map-name" id="qbMapName">─</div>
+          </div>
+
+          <!-- Fight button -->
+          <button class="qb-fight-btn" id="qbFightBtn" disabled>FIGHT!</button>
+          <button class="qb-back-btn" id="qbBackBtn">← BACK</button>
+        </div>
+
+        <!-- P2 big portrait -->
+        <div class="qb-fighter qb-fighter-right">
+          <div class="qb-portrait-wrap" id="qbP2Portrait">
+            <div class="qb-portrait-placeholder" id="qbP2Emoji"></div>
+          </div>
+          <div class="qb-fighter-name" id="qbP2Name">SELECT</div>
+          <div class="qb-fighter-role" id="qbP2Role">─</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: PROLOGUE / EMBER INTRO STORY    -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-prologue" class="screen">
+      <div class="prologue-bg" id="prologueBg"></div>
+      <div class="prologue-vignette"></div>
+      <div class="prologue-letterbox-top"></div>
+      <div class="prologue-letterbox-bot"></div>
+      <div class="prologue-counter" id="prologueCounter">1 / 8</div>
+      <div class="prologue-portrait" id="prologuePortrait"></div>
+      <div class="prologue-panel">
+        <div class="prologue-chapter-tag" id="prologueTag">PROLOGUE</div>
+        <div class="prologue-text" id="prologueText"></div>
+        <div class="prologue-speaker" id="prologueSpeaker"></div>
+      </div>
+      <div class="prologue-controls">
+        <button class="prologue-skip-btn" id="prologueSkip">SKIP ›</button>
+        <button class="prologue-next-btn" id="prologueNext">NEXT ›</button>
+      </div>
+      <div class="prologue-dots" id="prologueDots"></div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-charselect" class="screen">
+      <div class="charinfo-container">
+
+        <!-- TOP BAR: title only -->
+        <div class="ci-topbar">
+          <div class="ci-title">⚔ CHARACTERS</div>
+        </div>
+
+        <!-- CHARACTER ROW: horizontal scroll -->
+        <div class="ci-char-row" id="charinfoGrid"></div>
+
+        <!-- DETAIL AREA -->
+        <div class="ci-detail" id="charinfoDetail">
+          <div class="ci-empty">← Select a character to view abilities</div>
+        </div>
+
+        <!-- BACK at bottom -->
+        <div class="ci-footer">
+          <button class="btn-secondary" id="charSelectBack">← BACK</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: CHARACTER PROFILE (kept for internal use) -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-charprofile" class="screen">
+      <div class="screen-bg bg-dark"></div>
+      <div class="char-profile-container" id="charProfileContainer">
+        <div class="char-profile-left">
+          <div class="char-portrait-large" id="profilePortrait"></div>
+        </div>
+        <div class="char-profile-right">
+          <div class="char-profile-header">
+            <h2 class="char-profile-name" id="profileName"></h2>
+            <span class="char-profile-badge" id="profileBadge"></span>
+          </div>
+          <p class="char-profile-desc" id="profileDesc"></p>
+          <div class="stat-bars" id="profileStats"></div>
+          <div class="skill-row" id="profileSkills"></div>
+          <div class="char-profile-footer">
+            <button class="btn-secondary" id="profileBack">← BACK</button>
+            <button class="btn-primary" id="profileSelect">SELECT FIGHTER</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: CUTSCENE                        -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-cutscene" class="screen">
+      <div class="cutscene-bg" id="cutsceneBg"></div>
+      <div class="cutscene-portrait" id="cutscenePortrait"></div>
+      <div class="cutscene-dialogue" id="cutsceneDialogue">
+        <div class="dialogue-speaker" id="dialogueSpeaker"></div>
+        <div class="dialogue-text" id="dialogueText"></div>
+        <button class="dialogue-next" id="dialogueNext">NEXT ›</button>
+        <button class="dialogue-skip" id="dialogueSkip">SKIP</button>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: BOSS INTRO                      -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-bossintro" class="screen">
+      <div class="boss-intro-overlay"></div>
+      <div class="boss-intro-content">
+        <div class="boss-intro-label">BOSS BATTLE</div>
+        <div class="boss-intro-portrait" id="bossIntroPortrait"></div>
+        <div class="boss-intro-name" id="bossIntroName"></div>
+        <div class="boss-intro-subtitle" id="bossIntroSubtitle"></div>
+        <div class="boss-intro-fight" id="bossIntroFight">FIGHT!</div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: BATTLE                          -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-battle" class="screen">
+      <!-- HUD TOP -->
+      <div class="battle-hud-top">
+
+        <!-- P1 Portrait — far left -->
+        <div class="hud-portrait hud-portrait-p1" id="hudPlayerPortrait"></div>
+
+        <!-- P1 Bars — from portrait to center -->
+        <div class="hud-side hud-player">
+          <div class="hud-name" id="hudPlayerName">EMBER</div>
+          <div class="hud-hp-wrap">
+            <div class="hud-hp-bar" id="hudPlayerHP">
+              <div class="hud-hp-fill player-hp-fill" id="hudPlayerHPFill"></div>
+              <div class="hud-hp-text" id="hudPlayerHPText">1000/1000</div>
+            </div>
+          </div>
+          <div class="hud-energy-wrap">
+            <div class="hud-energy-bar">
+              <div class="hud-energy-fill" id="hudPlayerEnergyFill"></div>
+              <div class="hud-energy-text" id="hudPlayerEnergyText">0/100</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center HUD -->
+        <div class="hud-center">
+          <div class="hud-round-label" id="hudRoundLabel">ROUND 1/3</div>
+          <div class="hud-timer" id="hudTimer">99</div>
+          <div class="hud-round-indicators" id="hudRoundIndicators">
+            <div class="round-dot" id="rdot-0"></div>
+            <div class="round-dot" id="rdot-1"></div>
+            <div class="round-dot" id="rdot-2"></div>
+          </div>
+        </div>
+
+        <!-- P2 Bars — from center to portrait -->
+        <div class="hud-side hud-enemy">
+          <div class="hud-name enemy-name" id="hudEnemyName">RIVAL</div>
+          <div class="hud-hp-wrap">
+            <div class="hud-hp-bar" id="hudEnemyHP">
+              <div class="hud-hp-fill enemy-hp-fill" id="hudEnemyHPFill"></div>
+              <div class="hud-hp-text" id="hudEnemyHPText">1000/1000</div>
+            </div>
+          </div>
+          <div class="hud-energy-wrap">
+            <div class="hud-energy-bar">
+              <div class="hud-energy-fill enemy-energy-fill" id="hudEnemyEnergyFill"></div>
+              <div class="hud-energy-text" id="hudEnemyEnergyText">0/100</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P2 Portrait — far right -->
+        <div class="hud-portrait hud-portrait-p2" id="hudEnemyPortrait"></div>
+
+      </div>
+
+      <!-- BOSS HP BAR (shown on boss levels) -->
+      <div class="boss-hp-bar-wrap hidden" id="bossHPBarWrap">
+        <div class="boss-hp-label">BOSS</div>
+        <div class="boss-hp-bar">
+          <div class="boss-hp-fill" id="bossHPFill"></div>
+        </div>
+        <div class="boss-phase-indicator" id="bossPhaseIndicator"></div>
+      </div>
+
+      <!-- ARENA CANVAS -->
+      <canvas id="battleCanvas"></canvas>
+
+      <!-- BATTLE OVERLAY (round start, KO messages) -->
+      <div class="battle-overlay" id="battleOverlay">
+        <div class="battle-overlay-text" id="battleOverlayText"></div>
+      </div>
+
+      <!-- ULTIMATE PORTRAIT OVERLAY — ML Corner Style -->
+      <div class="ultimate-overlay hidden" id="ultimateOverlay">
+        <div class="ult-portrait" id="ultimateOverlayPortrait"></div>
+        <div class="ult-char-name" id="ultimateOverlayName"></div>
+        <div class="ult-skill-name" id="ultimateOverlaySkill"></div>
+      </div>
+
+      <!-- COMBO COUNTER -->
+      <div class="combo-counter hidden" id="comboCounter">
+        <span class="combo-hits" id="comboHits">0</span>
+        <span class="combo-label">HIT COMBO</span>
+      </div>
+
+      <!-- HUD BOTTOM — Controls -->
+      <div class="battle-hud-bottom">
+        <!-- Left: Movement -->
+        <div class="hud-movement" id="hudMovement">
+          <button class="move-btn" id="btnLeft" data-key="ArrowLeft">←</button>
+          <button class="move-btn" id="btnUp" data-key="ArrowUp">↑</button>
+          <button class="move-btn" id="btnRight" data-key="ArrowRight">→</button>
+        </div>
+
+        <!-- Center: Round indicators + pause -->
+        <div class="hud-center-bottom">
+          <button class="pause-btn" id="pauseBtn">⏸</button>
+        </div>
+
+        <!-- Right: Skills -->
+        <div class="hud-skills" id="hudSkills">
+          <div class="skill-btn-wrap" id="skillBtnWrap">
+            <button class="skill-btn" id="btnAttack" data-key="j">
+              <span class="skill-icon">👊</span>
+              <span class="skill-key">J</span>
+              <div class="skill-cooldown-overlay" id="cdAttack"></div>
+            </button>
+            <button class="skill-btn" id="btnSkill1" data-key="k">
+              <span class="skill-icon">🔥</span>
+              <span class="skill-key">K</span>
+              <div class="skill-cooldown-overlay" id="cdSkill1"></div>
+            </button>
+            <button class="skill-btn" id="btnSkill2" data-key="l">
+              <span class="skill-icon">💥</span>
+              <span class="skill-key">L</span>
+              <div class="skill-cooldown-overlay" id="cdSkill2"></div>
+            </button>
+            <button class="skill-btn" id="btnSkill3" data-key="u">
+              <span class="skill-icon">⚡</span>
+              <span class="skill-key">U</span>
+              <div class="skill-cooldown-overlay" id="cdSkill3"></div>
+            </button>
+            <button class="skill-btn ultimate-btn" id="btnUltimate" data-key="i" disabled>
+              <span class="skill-icon">🌟</span>
+              <span class="skill-key">I</span>
+              <span class="ult-label">ULTIMATE</span>
+              <div class="skill-cooldown-overlay" id="cdUltimate"></div>
+            </button>
+            <button class="skill-btn block-btn" id="btnBlock" data-key="s">
+              <span class="skill-icon">🛡</span>
+              <span class="skill-key">S</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAUSE PANEL -->
+      <div class="pause-panel hidden" id="pausePanel">
+        <div class="pause-content">
+          <h2 class="pause-title">PAUSED</h2>
+          <button class="btn-primary" data-pause-action="resume">RESUME</button>
+          <button class="btn-secondary" data-pause-action="restart">RESTART BATTLE</button>
+          <button class="btn-secondary" data-pause-action="howToPlay">HOW TO PLAY</button>
+          <button class="btn-secondary" data-pause-action="settings">SETTINGS</button>
+          <button class="btn-danger" data-pause-action="quit">QUIT TO STORY MAP</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: ROUND RESULT                    -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-roundresult" class="screen">
+      <div class="result-overlay">
+        <div class="round-result-text" id="roundResultText"></div>
+        <div class="round-result-sub" id="roundResultSub"></div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: VICTORY                         -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-victory" class="screen">
+      <div class="screen-bg bg-victory"></div>
+      <div class="victory-container">
+        <div class="victory-headline">YOU WIN!</div>
+        <div class="victory-stars" id="victoryStars"></div>
+        <div class="victory-portrait" id="victoryPortrait"></div>
+        <div class="victory-rewards" id="victoryRewards"></div>
+        <div class="victory-stats" id="victoryStats"></div>
+        <div class="victory-buttons">
+          <button class="btn-primary" id="btnNextLevel">NEXT LEVEL</button>
+          <button class="btn-secondary" id="btnReturnMap">RETURN TO MAP</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: DEFEAT                          -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-defeat" class="screen">
+      <div class="screen-bg bg-defeat"></div>
+      <div class="defeat-container">
+        <div class="defeat-headline">DEFEAT</div>
+        <div class="defeat-sub">You were defeated…<br>Try again and become stronger!</div>
+        <div class="defeat-portrait" id="defeatPortrait"></div>
+        <div class="defeat-buttons">
+          <button class="btn-primary" id="btnRetry">RETRY</button>
+          <button class="btn-secondary" id="btnDefeatCharSelect">CHARACTER SELECT</button>
+          <button class="btn-secondary" id="btnDefeatStoryMap">STORY MAP</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: CHARACTER UNLOCK                -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-unlock" class="screen">
+      <div class="unlock-overlay"></div>
+      <div class="unlock-container">
+        <div class="unlock-header">NEW FIGHTER UNLOCKED!</div>
+        <div class="unlock-portrait" id="unlockPortrait"></div>
+        <div class="unlock-name" id="unlockName"></div>
+        <div class="unlock-element" id="unlockElement"></div>
+        <div class="unlock-role" id="unlockRole"></div>
+        <p class="unlock-desc" id="unlockDesc"></p>
+        <button class="btn-primary" id="btnUnlockContinue">CONTINUE</button>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: CHAPTER COMPLETE                -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-chaptercomplete" class="screen">
+      <div class="screen-bg bg-victory"></div>
+      <div class="chapter-complete-container">
+        <div class="chapter-complete-headline" id="chapterCompleteTitle"></div>
+        <div class="chapter-complete-stars" id="chapterCompleteStars"></div>
+        <div class="chapter-complete-rewards" id="chapterCompleteRewards"></div>
+        <button class="btn-primary" id="btnNextChapter">NEXT CHAPTER</button>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: STORY COMPLETE                  -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-storycomplete" class="screen">
+      <div class="screen-bg bg-gold"></div>
+      <div class="story-complete-container">
+        <div class="story-complete-headline">STORY COMPLETE</div>
+        <div class="story-complete-sub">YOU HAVE CONQUERED THE FIGHTING ARENA</div>
+        <div class="story-complete-roster" id="storyCompleteRoster"></div>
+        <div class="story-complete-stats" id="storyCompleteStats"></div>
+        <div class="story-complete-buttons">
+          <button class="btn-primary" id="btnPlayAgain">PLAY AGAIN</button>
+          <button class="btn-secondary" id="btnSCCharSelect">CHARACTER SELECT</button>
+          <button class="btn-secondary" id="btnSCMainMenu">MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: HOW TO PLAY                     -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-howtoplay" class="screen">
+      <div class="screen-bg bg-dark"></div>
+      <div class="htp-container">
+
+        <div class="htp-header">
+          <h2 class="htp-title">HOW TO PLAY</h2>
+        </div>
+
+        <div class="htp-grid">
+
+          <!-- LEFT COLUMN -->
+          <div class="htp-col">
+            <div class="htp-section">
+              <h3>⌨ Movement</h3>
+              <div class="htp-rows">
+                <div class="htp-row"><span class="htp-keys"><kbd>A</kbd><kbd>←</kbd></span><span>Move Left</span></div>
+                <div class="htp-row"><span class="htp-keys"><kbd>D</kbd><kbd>→</kbd></span><span>Move Right</span></div>
+                <div class="htp-row"><span class="htp-keys"><kbd>W</kbd><kbd>↑</kbd></span><span>Jump</span></div>
+                <div class="htp-row"><span class="htp-keys"><kbd>S</kbd></span><span>Block</span></div>
+              </div>
+            </div>
+            <div class="htp-section">
+              <h3>⚔ Combat</h3>
+              <div class="htp-rows">
+                <div class="htp-row"><span class="htp-keys"><kbd>J</kbd></span><span>Basic Attack</span></div>
+                <div class="htp-row"><span class="htp-keys"><kbd>K</kbd></span><span>Skill 1</span></div>
+                <div class="htp-row"><span class="htp-keys"><kbd>L</kbd></span><span>Skill 2</span></div>
+                <div class="htp-row"><span class="htp-keys"><kbd>U</kbd></span><span>Skill 3</span></div>
+                <div class="htp-row"><span class="htp-keys"><kbd>I</kbd></span><span>Ultimate (100 Energy)</span></div>
+              </div>
+            </div>
+            <div class="htp-section">
+              <h3>🛡 Defense</h3>
+              <div class="htp-rows">
+                <div class="htp-row"><span class="htp-keys"><kbd>S</kbd></span><span>Hold to block</span></div>
+                <div class="htp-row"><span class="htp-tag">Normal</span><span>65% damage reduction</span></div>
+                <div class="htp-row"><span class="htp-tag htp-tag-gold">Perfect</span><span>90% reduction (0.2s window)</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN -->
+          <div class="htp-col">
+            <div class="htp-section">
+              <h3>⚡ Energy</h3>
+              <div class="htp-rows">
+                <div class="htp-row"><span class="htp-tag htp-tag-green">+8</span><span>When your attack lands</span></div>
+                <div class="htp-row"><span class="htp-tag">+3</span><span>When you take damage</span></div>
+                <div class="htp-row"><span class="htp-tag htp-tag-gold">100</span><span>ULTIMATE READY</span></div>
+              </div>
+            </div>
+            <div class="htp-section">
+              <h3>🏆 Rounds</h3>
+              <div class="htp-rows">
+                <div class="htp-row"><span class="htp-tag">Best of 3</span><span>Win 2 rounds to win</span></div>
+                <div class="htp-row"><span class="htp-tag">99s</span><span>Timer per round</span></div>
+                <div class="htp-row"><span class="htp-tag htp-tag-green">HP</span><span>Highest HP wins on timeout</span></div>
+              </div>
+            </div>
+            <div class="htp-section">
+              <h3>🔓 Game Modes</h3>
+              <div class="htp-rows">
+                <div class="htp-row"><span class="htp-tag htp-tag-gold">Story</span><span>Play as Ember vs CPU</span></div>
+                <div class="htp-row"><span class="htp-tag htp-tag-green">VS</span><span>Pick any 2 fighters</span></div>
+                <div class="htp-row"><span class="htp-tag">🔓</span><span>Defeat enemies to unlock</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- end htp-grid -->
+
+        <div class="htp-footer">
+          <button class="btn-secondary" id="htpBack">← BACK</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: SETTINGS                        -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-settings" class="screen">
+      <div class="screen-bg bg-dark"></div>
+      <div class="settings-container">
+
+        <div class="settings-header">
+          <h2 class="settings-title">SETTINGS</h2>
+        </div>
+
+        <div class="settings-grid">
+
+          <!-- Audio -->
+          <div class="settings-card">
+            <div class="settings-card-title">🔊 Audio</div>
+            <div class="settings-row">
+              <label class="settings-label">MUSIC</label>
+              <div class="settings-slider-wrap">
+                <input type="range" class="settings-slider" id="musicVolume" min="0" max="100" value="70" />
+              </div>
+              <span class="settings-value" id="musicVolumeVal">70</span>
+            </div>
+            <div class="settings-row">
+              <label class="settings-label">SFX</label>
+              <div class="settings-slider-wrap">
+                <input type="range" class="settings-slider" id="sfxVolume" min="0" max="100" value="80" />
+              </div>
+              <span class="settings-value" id="sfxVolumeVal">80</span>
+            </div>
+          </div>
+
+          <!-- Display -->
+          <div class="settings-card">
+            <div class="settings-card-title">🖥 Display</div>
+            <div class="settings-row">
+              <label class="settings-label">FULLSCREEN</label>
+              <button class="btn-secondary settings-btn" id="btnFullscreen">TOGGLE</button>
+            </div>
+          </div>
+
+          <!-- Danger Zone -->
+          <div class="settings-card settings-danger">
+            <div class="settings-card-title">⚠️ Danger Zone</div>
+            <div class="settings-row">
+              <label class="settings-label">RESET ALL PROGRESS</label>
+              <button class="btn-danger settings-btn" id="btnResetSave">RESET</button>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="settings-footer">
+          <button class="btn-secondary" id="settingsBack">← BACK</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
+    <!-- GLOBAL EFFECT LAYERS                    -->
+    <!-- ─────────────────────────────────────── -->
+    <!-- Floating damage numbers -->
+    <div id="damageNumberLayer" class="damage-number-layer"></div>
+    <!-- Screen flash overlay -->
+    <div id="screenFlash" class="screen-flash hidden"></div>
+    <!-- Transition overlay -->
+    <div id="transitionOverlay" class="transition-overlay"></div>
+
+  </div><!-- /#app -->
+
+  <!-- ═══════════════════════════════════════════
+       FIREBASE SDK
+  ═══════════════════════════════════════════ -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBFq9Mfz48u4XcKA75mMT45_EQx1BOtDrY",
+      authDomain: "fighting-arena-30889.firebaseapp.com",
+      projectId: "fighting-arena-30889",
+      storageBucket: "fighting-arena-30889.firebasestorage.app",
+      messagingSenderId: "494751053206",
+      appId: "1:494751053206:web:b98f07b974688dc13119b7"
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Expose globally so LoginScreen.js can use them
+    window.FirebaseAuth = {
+      auth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged,
+    };
+  </script>
+
+  <!-- ═══════════════════════════════════════════
+       SCRIPT LOADING ORDER (dependency-safe)
+  ═══════════════════════════════════════════ -->
+  <script src="data/characters.js"></script>
+  <script src="data/levels.js"></script>
+  <script src="systems/SaveManager.js"></script>
+  <script src="systems/AudioManager.js"></script>
+  <script src="systems/InputManager.js"></script>
+  <script src="systems/EffectManager.js"></script>
+  <script src="systems/AssetManager.js"></script>
+  <script src="engine/Skills.js"></script>
+  <script src="engine/Character.js"></script>
+  <script src="engine/CpuAI.js"></script>
+  <script src="engine/BattleEngine.js"></script>
+  <script src="screens/LoginScreen.js"></script>
+  <script src="screens/MainMenu.js"></script>
+  <script src="screens/StoryMap.js"></script>
+  <script src="screens/CharacterSelect.js"></script>
+  <script src="screens/QuickBattle.js"></script>
+  <script src="screens/Prologue.js"></script>
+  <script src="screens/Cutscene.js"></script>
+  <script src="screens/BattleScreen.js"></script>
+  <script src="screens/VictoryScreen.js"></script>
+  <script src="screens/HowToPlay.js"></script>
+  <script src="screens/Settings.js"></script>
+  <script src="game.js"></script>
+
+</body>
+</html>
