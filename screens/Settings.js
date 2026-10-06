@@ -85,6 +85,20 @@ const SettingsScreen = (() => {
         GameManager.navigateBack();
       });
     }
+
+    // Logout button
+    const logoutBtn = document.getElementById('btnLogout');
+    if (logoutBtn) {
+      const clone = logoutBtn.cloneNode(true);
+      logoutBtn.parentNode.replaceChild(clone, logoutBtn);
+      clone.addEventListener('click', () => {
+        AudioManager.playSFX('btn_click');
+        if (typeof LoginScreen !== 'undefined') {
+          LoginScreen.logout();
+        }
+        GameManager.navigate('LOGIN');
+      });
+    }
   }
 
   function _toggleFullscreen() {
