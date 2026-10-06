@@ -605,10 +605,6 @@ html, body {
   font-weight: bold;
 }
 
-  color: var(--clr-gold);
-  font-weight: bold;
-}
-
 /* ─────────────────────────────────────────────────────────────
    EPISODE SELECT POPUP
 ───────────────────────────────────────────────────────────────*/
@@ -2292,6 +2288,7 @@ html, body {
   padding: 0 4px;
   text-shadow: 0 1px 3px #000;
 }
+.qb-card {
   aspect-ratio: 2/3;
   border-radius: 6px;
   border: 2px solid rgba(255,255,255,0.12);
@@ -2468,6 +2465,28 @@ html, body {
   .qb-center { padding: 2px 4px; }
 }
 
+/* Mobile landscape — compact everything to fit screen */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .qb-center {
+    overflow-y: auto;
+    justify-content: flex-start;
+    gap: 3px;
+    padding: 2px 4px;
+  }
+  .qb-vs-label { display: none; }
+  .qb-grid { grid-template-columns: repeat(5, 1fr); gap: 3px; }
+  .qb-fight-btn {
+    font-size: 0.75rem;
+    padding: 6px 16px;
+    margin-top: 2px;
+  }
+  .qb-fighter { flex: 0 0 18%; }
+  .qb-fighter-name { font-size: 0.8rem; }
+  .qb-fighter-role { display: none; }
+  .qb-map-strip { max-height: 52px; overflow-x: auto; }
+  .qb-map-thumb { width: 52px; height: 36px; }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    PROLOGUE — EMBER INTRO STORY (Cinematic Slides)
 ═══════════════════════════════════════════════════════════════ */
@@ -2527,7 +2546,6 @@ html, body {
 /* ── Portrait (left side, tall) — hidden ────────────────────── */
 .prologue-portrait {
   display: none;
-}
   position: absolute;
   left: 0; bottom: 80px;
   width: min(35%, 380px);
@@ -3038,6 +3056,7 @@ html, body {
   flex-direction: column;
   gap: 12px;
 }
+.charinfo-card {
   transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 .charinfo-card:hover {
@@ -3599,4 +3618,31 @@ html, body {
   #app {
     display: none;
   }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MOBILE LANDSCAPE — Main Menu compact layout
+───────────────────────────────────────────────────────────────*/
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .menu-title-wrap {
+    top: 2%;
+  }
+  .title-the {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+  }
+  .title-main {
+    font-size: clamp(1.2rem, 4vw, 2rem);
+  }
+  .title-glow-bar { display: none; }
+  .menu-nav {
+    top: 52%;
+    gap: 3px;
+    width: min(220px, 70%);
+  }
+  .menu-btn {
+    padding: 7px 20px;
+    font-size: 0.72rem;
+  }
+  .menu-hint { display: none; }
 }
