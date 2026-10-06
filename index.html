@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#0a0a0f" />
+  <!-- Force landscape on mobile -->
+  <meta name="screen-orientation" content="landscape" />
   <title>The Story of the First Flame</title>
   <!-- Inline favicon to prevent 404 -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>" />
@@ -15,6 +17,12 @@
        ROOT APP CONTAINER
        All screens are injected here by ScreenManager
   ═══════════════════════════════════════════ -->
+  <!-- ROTATE SCREEN OVERLAY (mobile portrait) -->
+  <div class="rotate-overlay">
+    <div class="rotate-overlay-icon">📱</div>
+    <div class="rotate-overlay-text">ROTATE YOUR DEVICE<br>TO PLAY</div>
+  </div>
+
   <div id="app">
 
     <!-- ─────────────────────────────────────── -->
