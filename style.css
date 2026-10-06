@@ -1945,6 +1945,10 @@ html, body {
 }
 .settings-footer {
   flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -3554,4 +3558,45 @@ html, body {
   font-family: var(--font-title);
   letter-spacing: 0.1em;
   opacity: 0.8;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ROTATE SCREEN OVERLAY — shown on mobile portrait mode
+───────────────────────────────────────────────────────────────*/
+.rotate-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #0a0a0f;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.rotate-overlay-icon {
+  font-size: 4rem;
+  animation: rotatePhone 1.5s ease-in-out infinite;
+}
+.rotate-overlay-text {
+  font-family: var(--font-title, 'Impact', sans-serif);
+  font-size: 1rem;
+  color: #ff6b2b;
+  letter-spacing: 0.2em;
+  text-align: center;
+}
+@keyframes rotatePhone {
+  0%   { transform: rotate(0deg); }
+  50%  { transform: rotate(90deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Show overlay only on portrait mobile */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .rotate-overlay {
+    display: flex;
+  }
+  #app {
+    display: none;
+  }
 }
