@@ -170,6 +170,22 @@
     </div>
 
     <!-- ─────────────────────────────────────── -->
+    <!-- SCREEN: SUB-LEVEL MAP (6 nodes)         -->
+    <!-- ─────────────────────────────────────── -->
+    <div id="screen-sublevelmap" class="screen">
+      <div class="screen-bg bg-dark"></div>
+      <div class="sub-level-map-container">
+        <div class="sub-level-map-header">
+          <h2 class="sub-level-map-title" id="subLevelMapTitle"></h2>
+        </div>
+        <div class="sub-level-nodes" id="subLevelNodes"></div>
+        <div class="screen-footer">
+          <button class="btn-secondary" data-action="backToChapterMap">← BACK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────────── -->
     <!-- SCREEN: QUICK BATTLE SELECT             -->
     <!-- ─────────────────────────────────────── -->
     <div id="screen-quickbattle" class="screen">
@@ -520,7 +536,7 @@
         <div class="defeat-portrait" id="defeatPortrait"></div>
         <div class="defeat-buttons">
           <button class="btn-primary" id="btnRetry">RETRY</button>
-          <button class="btn-secondary" id="btnDefeatCharSelect">CHARACTER SELECT</button>
+          <button class="btn-secondary" id="btnDefeatCharSelect">CHARACTER ABILITIES</button>
           <button class="btn-secondary" id="btnDefeatStoryMap">STORY MAP</button>
         </div>
       </div>
@@ -725,6 +741,16 @@
     <div id="transitionOverlay" class="transition-overlay"></div>
 
   </div><!-- /#app -->
+
+  <!-- ═══════════════════════════════════════════
+       EMAILJS SDK
+  ═══════════════════════════════════════════ -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    (function() {
+      emailjs.init({ publicKey: "-6vJ2tBjvjNkUXWPB" });
+    })();
+  </script>
 
   <!-- ═══════════════════════════════════════════
        FIREBASE SDK
