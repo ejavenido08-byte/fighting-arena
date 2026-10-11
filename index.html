@@ -88,6 +88,25 @@
             </div>
             <button type="submit" class="login-btn-submit">CREATE ACCOUNT</button>
           </form>
+
+          <!-- VERIFICATION PANEL (shown after code is sent) -->
+          <div class="login-form hidden" id="verifyPanel">
+            <div class="verify-info" id="verifyInfo" style="color:#aaa;font-size:0.85em;margin-bottom:12px;line-height:1.5;"></div>
+            <div class="login-field">
+              <label>VERIFICATION CODE</label>
+              <input type="text" id="verifyCodeInput"
+                placeholder="Enter 6-digit code"
+                maxlength="6"
+                autocomplete="one-time-code"
+                inputmode="numeric"
+                style="letter-spacing:0.3em;font-size:1.3em;text-align:center;" />
+            </div>
+            <button class="login-btn-submit" id="btnVerifyCode">VERIFY &amp; CREATE ACCOUNT</button>
+            <button class="login-btn-resend" id="btnResendCode"
+              style="background:transparent;border:1px solid #555;color:#aaa;width:100%;padding:8px;margin-top:8px;cursor:pointer;border-radius:4px;">
+              Resend Code
+            </button>
+          </div>
         </div>
       </div>
     </div>
