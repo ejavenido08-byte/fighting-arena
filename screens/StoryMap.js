@@ -14,8 +14,6 @@ const StoryMapScreen = (() => {
     // Music already started from Main Menu — just continue
     _buildChapterList();
     _wireStoryMapButtons();
-    _buildChapterList();
-    _wireStoryMapButtons();
   }
 
   function exitStoryMap() {}
@@ -178,7 +176,7 @@ const StoryMapScreen = (() => {
         node.addEventListener('click', () => {
           AudioManager.playSFX('btn_click');
           GameManager.setCurrentLevel(level.id);
-          // Enter cutscene first if not visited, else go direct to battle
+          // Go directly to cutscene or battle
           const cutsceneKey = `cutscene_seen_${level.id}`;
           if (!sessionStorage.getItem(cutsceneKey) && level.cutscene) {
             GameManager.navigate('CUTSCENE');
