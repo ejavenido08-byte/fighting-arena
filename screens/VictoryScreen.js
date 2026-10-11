@@ -18,6 +18,18 @@ const VictoryScreen = (() => {
     const playerCh = getCharacter(SaveManager.getSelectedCharacter());
     const isQB     = GameManager.isQuickBattle();
 
+    // ── Minion victory — show normal victory screen ──────────────
+    // When a minion/scout is beaten, show the victory screen normally.
+    // The NEXT button on the victory screen will advance to the next scout
+    // or to the main boss fight. We just override the button label and
+    // wire _handleNextLevel to route correctly via level.nextLevelId.
+    if (level && level.isMinion) {
+      SaveManager.completeLevel(levelId, 1, level.rewards.xp, level.rewards.coins);
+      // Fall through to normal victory UI — do NOT return early.
+      // _handleNextLevel below reads level.nextLevelId to advance correctly.
+    }
+    // ── End minion section ───────────────────────────────────────
+
     // Update victory button labels based on mode
     const mapBtn2 = document.getElementById('btnReturnMap');
     if (mapBtn2) mapBtn2.textContent = isQB ? 'VS MODE' : 'RETURN TO MAP';
@@ -60,19 +72,42 @@ const VictoryScreen = (() => {
   function _buildVictoryPortrait(ch) {
     const el = document.getElementById('victoryPortrait');
     if (!el || !ch) return;
-    const src = AssetManager.getPortraitSrc(ch.id, 'victory');
-    if (src) {
-      el.innerHTML = `<img src="${src}" alt="${ch.name}"
-        style="width:140px;height:180px;object-fit:cover;object-position:top center;
-               border-radius:12px;filter:drop-shadow(0 0 20px ${ch.color}80);" />`;
-      el.style.fontSize = '';
-    } else {
-      el.innerHTML = '';
-      el.textContent = ch.emoji;
-      el.style.color  = ch.color;
-      el.style.filter = `drop-shadow(0 0 24px ${ch.color}80)`;
-      el.style.fontSize = 'min(8rem,20vw)';
+
+    function _setPortrait() {
+      // Try victory → select → cutscene portrait
+      const src = AssetManager.getPortraitSrc(ch.id, 'victory')
+               || AssetManager.getPortraitSrc(ch.id, 'select')
+               || AssetManager.getPortraitSrc(ch.id, 'cutscene');
+      if (src && !src.startsWith('data:')) {
+        el.innerHTML = `<img src="${src}" alt="${ch.name}"
+          style="width:140px;height:180px;object-fit:cover;object-position:top center;
+                 border-radius:12px;filter:drop-shadow(0 0 20px ${ch.color}80);" />`;
+        el.style.fontSize = '';
+      } else {
+        // Try loading portrait image directly
+        const directImg = new Image();
+        directImg.onload = () => {
+          el.innerHTML = `<img src="assets/characters/${ch.id}_portrait.png" alt="${ch.name}"
+            style="width:140px;height:180px;object-fit:cover;object-position:top center;
+                   border-radius:12px;filter:drop-shadow(0 0 20px ${ch.color}80);" />`;
+          el.style.fontSize = '';
+        };
+        directImg.onerror = () => {
+          el.innerHTML  = '';
+          el.textContent = ch.emoji;
+          el.style.color  = ch.color;
+          el.style.filter = `drop-shadow(0 0 24px ${ch.color}80)`;
+          el.style.fontSize = 'min(8rem,20vw)';
+        };
+        directImg.src = `assets/characters/${ch.id}_portrait.png`;
+      }
     }
+
+    _setPortrait();
+    // Re-render when portrait finishes loading
+    AssetManager.onPortraitLoaded((id) => {
+      if (id === ch.id) _setPortrait();
+    });
   }
 
   function _buildVictoryStars(count) {
@@ -202,32 +237,32 @@ const VictoryScreen = (() => {
     }
 
     // Advance to next level
-    // If this was a minion level, next is either the next minion OR the parent (boss) level
+    // If this was a minion/scout level, use nextLevelId to chain to next scout or main boss.
+    // Otherwise use getNextLevel() for normal story progression.
     let nextLevel = null;
-    if (level && level.isMinion && level.parentLevel) {
-      // Check if there's another minion with the same parent after this one
-      const siblings = STORY_LEVELS.filter(l => l.parentLevel === level.parentLevel);
-      const myIdx    = siblings.findIndex(l => l.id === levelId);
-      if (myIdx >= 0 && myIdx < siblings.length - 1) {
-        // Go to next minion sibling
-        nextLevel = siblings[myIdx + 1];
-      } else {
-        // All minions done — go to parent (boss/main) level
-        nextLevel = getLevel(level.parentLevel);
-      }
+    if (level && level.isMinion && level.nextLevelId) {
+      nextLevel = getLevel(level.nextLevelId);
     } else {
       nextLevel = levelId ? getNextLevel(levelId) : null;
     }
 
     if (nextLevel) {
       GameManager.setCurrentLevel(nextLevel.id);
-      const cutsceneKey = `cutscene_seen_${nextLevel.id}`;
-      if (!sessionStorage.getItem(cutsceneKey) && nextLevel.cutscene) {
-        GameManager.navigate('CUTSCENE');
-      } else if (nextLevel.isBossLevel || nextLevel.isFinalBoss) {
-        GameManager.navigate('BOSS_INTRO');
-      } else {
+      if (nextLevel.isMinion) {
+        // Next is another scout — go straight to battle, no cutscene
+        AudioManager.stopMusic(0.5);
         GameManager.navigate('BATTLE');
+      } else {
+        // Next is the main boss level — normal flow
+        const cutsceneKey = `cutscene_seen_${nextLevel.id}`;
+        if (!sessionStorage.getItem(cutsceneKey) && nextLevel.cutscene) {
+          GameManager.navigate('CUTSCENE');
+        } else if (nextLevel.isBossLevel || nextLevel.isFinalBoss) {
+          GameManager.navigate('BOSS_INTRO');
+        } else {
+          AudioManager.stopMusic(0.5);
+          GameManager.navigate('BATTLE');
+        }
       }
     } else {
       GameManager.navigate('STORY_MAP');
@@ -258,7 +293,7 @@ const VictoryScreen = (() => {
     // Update button labels based on game mode
     const isQB = GameManager.isQuickBattle();
     const csBtn2 = document.getElementById('btnDefeatCharSelect');
-    if (csBtn2) csBtn2.textContent = isQB ? 'VS MODE' : 'CHARACTER SELECT';
+    if (csBtn2) csBtn2.textContent = isQB ? 'VS MODE' : 'CHARACTER ABILITIES';
     const smBtn2 = document.getElementById('btnDefeatStoryMap');
     if (smBtn2) smBtn2.textContent = isQB ? 'MAIN MENU' : 'STORY MAP';
     const mapBtn2 = document.getElementById('btnReturnMap');
@@ -481,7 +516,7 @@ const VictoryScreen = (() => {
     const statsEl = document.getElementById('storyCompleteStats');
     if (statsEl) {
       statsEl.innerHTML = `
-        Levels Completed: ${save.completedLevels.length} / 10<br>
+        Levels Completed: ${save.completedLevels.filter(function(id){ return id.indexOf('_minion') === -1; }).length} / 10<br>
         Total Stars: ${SaveManager.getTotalStars()} / 30<br>
         Total XP: ${save.playerXP}<br>
         Total Coins: ${save.coins}<br>
