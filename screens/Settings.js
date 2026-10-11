@@ -93,10 +93,25 @@ const SettingsScreen = (() => {
       logoutBtn.parentNode.replaceChild(clone, logoutBtn);
       clone.addEventListener('click', () => {
         AudioManager.playSFX('btn_click');
+        clone.textContent = 'LOGGING OUT...';
+        clone.disabled = true;
+
+        // Clear user state in LoginScreen first
         if (typeof LoginScreen !== 'undefined') {
           LoginScreen.logout();
         }
-        GameManager.navigate('LOGIN');
+
+        // Sign out from Firebase then navigate
+        const FA = window.FirebaseAuth;
+        if (FA) {
+          FA.signOut(FA.auth).then(() => {
+            GameManager.navigate('LOGIN');
+          }).catch(() => {
+            GameManager.navigate('LOGIN');
+          });
+        } else {
+          GameManager.navigate('LOGIN');
+        }
       });
     }
   }
