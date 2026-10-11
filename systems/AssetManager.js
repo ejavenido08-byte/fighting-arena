@@ -66,16 +66,28 @@ const AssetManager = (() => {
   };
 
   const CHAR_FRAME_COUNTS = {
-    ember:   { idle:4, walk:6, jump:3, attack:5, skill:6, ultimate:8, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
-    frost:   { idle:4, walk:6, jump:3, attack:5, skill:6, ultimate:7, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
-    blaze:   { idle:4, walk:6, jump:3, attack:5, skill:6, ultimate:7, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
-    volt:    { idle:4, walk:6, jump:3, attack:3, skill:4, ultimate:7, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
-    luna:    { idle:4, walk:6, jump:3, attack:5, skill:5, ultimate:8, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
-    terra:   { idle:4, walk:6, jump:3, attack:5, skill:5, ultimate:5, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
-    kai:     { idle:4, walk:6, jump:3, attack:5, skill:5, ultimate:8, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
-    kira:    { idle:4, walk:6, jump:3, attack:5, skill:6, ultimate:8, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
-    shadow:  { idle:4, walk:6, jump:3, attack:5, skill:6, ultimate:8, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
-    inferno: { idle:4, walk:6, jump:3, attack:5, skill:6, ultimate:8, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
+    ember:         { idle:4, walk:6, jump:3, attack:5, skill:6, ultimate:8, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
+    frost:         { idle:4, walk:6, jump:3, attack:5, skill:6, ultimate:7, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
+    blaze:         { idle:4, walk:6, jump:3, attack:5, skill:6, ultimate:7, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
+    volt:          { idle:4, walk:6, jump:3, attack:3, skill:4, ultimate:7, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
+    luna:          { idle:4, walk:6, jump:3, attack:5, skill:5, ultimate:8, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
+    terra:         { idle:4, walk:6, jump:3, attack:5, skill:5, ultimate:5, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
+    kai:           { idle:4, walk:6, jump:3, attack:5, skill:5, ultimate:8, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
+    kira:          { idle:4, walk:6, jump:3, attack:5, skill:6, ultimate:8, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
+    shadow:        { idle:4, walk:6, jump:3, attack:5, skill:6, ultimate:8, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
+    inferno:       { idle:4, walk:6, jump:3, attack:5, skill:6, ultimate:8, hit:2, knockdown:4, block:2, victory:4, defeat:3 },
+    // ── Minion scouts ──
+    frost_scout:     { idle:4, walk:6, attack:5, skill:6, hit:2, knockdown:4, defeat:3 },
+    frost_scout_2:   { idle:4, walk:6, attack:5, skill:5, hit:2, knockdown:4, defeat:3 },
+    frost_scout_3:   { idle:4, walk:6, attack:5, skill:5, hit:2, knockdown:4, defeat:3 },
+    blaze_scout:   { idle:4, walk:6, attack:5, skill:6, hit:2, knockdown:4, defeat:3 },
+    volt_scout:    { idle:4, walk:6, attack:5, skill:6, hit:2, knockdown:4, defeat:3 },
+    luna_acolyte:  { idle:4, walk:6, attack:5, skill:6, hit:2, knockdown:4, defeat:3 },
+    terra_scout:   { idle:4, walk:6, attack:5, skill:6, hit:2, knockdown:4, defeat:3 },
+    kai_scout:     { idle:4, walk:6, attack:5, skill:6, hit:2, knockdown:4, defeat:3 },
+    kira_acolyte:  { idle:4, walk:6, attack:5, skill:6, hit:2, knockdown:4, defeat:3 },
+    shadow_scout:  { idle:4, walk:6, attack:5, skill:6, hit:2, knockdown:4, defeat:3 },
+    inferno_acolyte: { idle:4, walk:6, attack:5, skill:6, hit:2, knockdown:4, defeat:3 },
   };
 
   const FRAME_W = 80;
@@ -150,12 +162,24 @@ const AssetManager = (() => {
     _onReadyCb = onReady;
 
     if (_ready) {
+      // Still try to load any new minion characters that may have been added
+      let reloadChars = [];
+      try { reloadChars = getAllCharactersIncludingMinions(); } catch(e) {
+        try { reloadChars = Object.values(CHARACTERS); } catch(e2) {}
+      }
+      reloadChars.forEach(ch => {
+        if (!ch) return;
+        if (!_perStateFrames[ch.id]) _tryLoadPerStateFiles(ch);
+        if (!_generated[ch.id]) {
+          try { _generated[ch.id] = _generatePlaceholderSheet(ch); } catch(e) {}
+        }
+      });
       if (_onReadyCb) { _onReadyCb(); _onReadyCb = null; }
       return;
     }
 
     let allChars = [];
-    try { allChars = getAllCharacters(); } catch(e) {
+    try { allChars = getAllCharactersIncludingMinions(); } catch(e) {
       try { allChars = Object.values(CHARACTERS); } catch(e2) {}
     }
 
