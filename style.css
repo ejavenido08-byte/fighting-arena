@@ -3250,6 +3250,7 @@ html, body {
   box-sizing: border-box;
   background: radial-gradient(ellipse at 50% 0%, #1a1a2e 0%, #0a0a0f 80%);
   z-index: 2;
+  overflow: hidden;  /* prevent content spilling out */
 }
 
 /* Top bar */
@@ -3310,10 +3311,10 @@ html, body {
   font-family: var(--font-title, 'Impact', sans-serif);
 }
 
-/* Detail area — fills remaining space */
+/* Detail area — fills remaining space, scrollable */
 .ci-detail {
   flex: 1;
-  min-height: 0;
+  min-height: 0;        /* critical — allows flex child to shrink below content size */
   overflow-y: auto;
   background: rgba(0,0,0,0.45);
   border-radius: 10px;
@@ -3646,3 +3647,60 @@ html, body {
   }
   .menu-hint { display: none; }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   SUB-LEVEL MAP SCREEN
+───────────────────────────────────────────────────────────────*/
+.sub-level-map-container {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  width: 100%; height: 100%;
+  padding: var(--gap-md, 16px);
+  box-sizing: border-box;
+}
+.sub-level-map-header {
+  text-align: center;
+  padding-bottom: var(--gap-md, 16px);
+  border-bottom: 1px solid var(--clr-border, rgba(255,255,255,0.1));
+  margin-bottom: var(--gap-md, 16px);
+}
+.sub-level-map-title {
+  font-family: var(--font-title, 'Cinzel', serif);
+  font-size: clamp(1.2rem, 3vw, 1.8rem);
+  color: var(--clr-primary, #e8c97a);
+  text-shadow: 0 0 20px var(--clr-primary-glow, rgba(232,201,122,0.5));
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.sub-level-nodes {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-md, 16px);
+  padding: var(--gap-md, 16px);
+  overflow-x: auto;
+  flex-wrap: wrap;
+}
+/* Scout nodes slightly smaller than chapter-map nodes */
+.sub-level-node.level-node .level-node-circle {
+  width: 56px;
+  height: 56px;
+  font-size: 1rem;
+}
+/* Boss node highlight */
+.sub-level-node.boss-node .level-node-circle {
+  border-color: var(--clr-danger, #e05252);
+  box-shadow: 0 0 16px rgba(224, 82, 82, 0.6);
+  font-size: 1.3rem;
+}
+.sub-level-node .level-node-label {
+  font-size: 0.7rem;
+  text-align: center;
+  max-width: 90px;
+  word-break: break-word;
+  line-height: 1.2;
+}
+.star-filled { color: gold; }
+.star-empty  { color: rgba(255,255,255,0.2); }
