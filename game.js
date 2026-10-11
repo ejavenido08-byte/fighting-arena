@@ -116,6 +116,7 @@ const GameManager = (() => {
   let _previousState     = null;
   let _currentLevel      = null;   // level ID string
   let _currentChapter    = 'chapter1';
+  let _currentMainLevel  = null;
   let _playerCharId      = 'ember';
   let _enemyCharId       = null;
   let _viewedCharId      = null;
@@ -299,6 +300,8 @@ const GameManager = (() => {
     init,
     setCurrentLevel,    getCurrentLevel,
     setCurrentChapter,  getCurrentChapter,
+    setCurrentMainLevel(id) { _currentMainLevel = id; },
+    getCurrentMainLevel()   { return _currentMainLevel; },
     setPlayerCharacter, getPlayerCharacter,
     setEnemyCharacter,  getEnemyCharacter,
     setViewedCharacter, getViewedCharacter,
